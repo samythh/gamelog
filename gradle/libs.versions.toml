@@ -1,21 +1,16 @@
-# File: gradle/libs.versions.toml
 # Versi final yang menggunakan library stabil dan kompatibel.
 
 [versions]
-# Menggunakan versi AGP dan Kotlin yang stabil dan teruji
-accompanistPager = "<version_anda>"
 agp = "8.10.1"
 kotlin = "2.0.0"
-ksp = "2.0.0-1.0.21" # Versi KSP yang cocok dengan Kotlin 2.0.0
+ksp = "2.0.0-1.0.21"
 
-# Mengunci versi Material3 ke versi stabil yang diketahui memiliki API PullToRefresh
 androidx-material3 = "1.2.1"
 
-# Versi stabil untuk library Jetpack & AndroidX lainnya
 coreKtx = "1.13.1"
 lifecycle = "2.8.0"
 activityCompose = "1.9.0"
-composeBom = "2024.06.00" # Menggunakan BOM versi stabil terbaru
+composeBom = "2024.06.00"
 navigationCompose = "2.7.7"
 room = "2.6.1"
 datastore = "1.1.1"
@@ -24,18 +19,18 @@ datastore = "1.1.1"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
 coil = "2.6.0"
+accompanist = "0.34.0"
+gson = "2.10.1"
 
 # Versi untuk testing
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 
-accompanist = "0.28.0"
+androidxComposeBom = "2024.04.00"
 
 [libraries]
 # AndroidX Core & Lifecycle
-accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version.ref = "accompanistPager" }
-accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "accompanistPager" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
@@ -47,7 +42,7 @@ androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "androidx-material3" } # Menggunakan versi manual, bukan dari BOM
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "androidx-material3" }
 
 # Navigasi
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
@@ -66,6 +61,14 @@ okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-i
 # Image Loading
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
+# Accompanist Pager
+accompanist-pager = { group = "com.google.accompanist", name = "accompanist-pager", version.ref = "accompanist" }
+accompanist-pager-indicators = { group = "com.google.accompanist", name = "accompanist-pager-indicators", version.ref = "accompanist" }
+accompanist-swiperefresh = { group = "com.google.accompanist", name = "accompanist-swiperefresh", version.ref = "accompanist" }
+
+# Gson
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -74,6 +77,9 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 
+# Library Compose Foundation (untuk FlowRow dan komponen dasar lainnya)
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

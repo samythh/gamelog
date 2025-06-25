@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-// Skema untuk tema gelap (sesuai permintaan Anda)
+// Skema untuk tema gelap
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryYellow,      // Warna utama untuk komponen interaktif seperti Tombol, dan Aksen
     onPrimary = TextOnLight,      // Warna teks di atas Primary (Hitam di atas Kuning)
@@ -43,10 +43,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun GamesCatalogTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // --- UBAH BAGIAN INI ---
-    // Ganti nilai default 'true' menjadi 'false' untuk menonaktifkan Dynamic Color
-    // dan memaksa aplikasi untuk SELALU menggunakan skema warna kustom kita
-    dynamicColor: Boolean = false, // <-- Ubah nilai ini menjadi 'false'
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

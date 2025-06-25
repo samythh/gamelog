@@ -2,7 +2,7 @@ package com.example.gamescatalog.di
 
 import android.content.Context
 import com.example.gamescatalog.data.CatalogRepository
-import com.example.gamescatalog.data.local.CatalogDatabase // Import ini sudah benar
+import com.example.gamescatalog.data.local.CatalogDatabase
 import com.example.gamescatalog.data.preferences.UserPreferences
 import com.example.gamescatalog.data.preferences.dataStore
 import com.example.gamescatalog.data.remote.retrofit.ApiConfig
@@ -12,8 +12,6 @@ object Injection {
      * Menyediakan instance tunggal dari CatalogRepository.
      */
     fun provideRepository(context: Context): CatalogRepository {
-        // PERBAIKAN: Mengubah panggilan dari .getInstance() menjadi .getDatabase()
-        // Karena fungsi di CatalogDatabase.kt didefinisikan sebagai 'getDatabase', bukan 'getInstance'.
         val database = CatalogDatabase.getDatabase(context) // Perbaikan
         val apiService = ApiConfig.getApiService()
         return CatalogRepository.getInstance(database.userDao(), database.bookmarkedItemDao(), apiService)

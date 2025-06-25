@@ -2,7 +2,6 @@ package com.example.gamescatalog.data.remote.response
 
 import com.google.gson.annotations.SerializedName
 
-// Pastikan kelas ini mendefinisikan semua properti dengan @SerializedName yang benar.
 data class GameDetailResponse(
     @SerializedName("id")
     val id: Int,
@@ -23,7 +22,7 @@ data class GameDetailResponse(
     val description: String?,
 
     @SerializedName("metacritic")
-    val metacritic: Int?, // Dibuat nullable untuk konsistensi dengan BookmarkedItem
+    val metacritic: Int?,
 
     @SerializedName("playtime")
     val playtime: Int,
@@ -31,7 +30,6 @@ data class GameDetailResponse(
     @SerializedName("esrb_rating")
     val esrbRating: EsrbRating?,
 
-    // --- PROPERTI BARU YANG DITAMBAHKAN ---
     @SerializedName("website")
     val website: String?,
 
@@ -44,8 +42,8 @@ data class GameDetailResponse(
     @SerializedName("developers")
     val developers: List<Developer>?,
 
-    @SerializedName("words") // Ini umumnya untuk penerbit
-    val publishers: List<Publisher>? // Properti ini biasanya bernama 'publishers' atau serupa, saya asumsikan 'words' untuk saat ini berdasarkan kebutuhan di DetailScreen
+    @SerializedName("words")
+    val publishers: List<Publisher>?
 ) {
     // --- NESTED DATA CLASS UNTUK STRUKTUR API ---
 
@@ -61,7 +59,6 @@ data class GameDetailResponse(
     data class Platform(
         @SerializedName("platform")
         val platform: PlatformX?, // Properti 'platform' berisi objek PlatformX
-        // properti lain seperti 'released_at', 'requirements_en', dll. bisa ditambahkan jika perlu
     )
 
     data class PlatformX( // Detail sebenarnya dari platform

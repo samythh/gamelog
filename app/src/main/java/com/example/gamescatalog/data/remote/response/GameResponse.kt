@@ -1,17 +1,18 @@
-// File: data/remote/response/GameResponse.kt
-// Salin dan ganti seluruh isi file Anda dengan kode di bawah ini untuk memperbaikinya.
-
+// File: gamesCatalog2/app/src/main/java/com/example/gamescatalog/data/remote/response/GameResponse.kt
 package com.example.gamescatalog.data.remote.response
 
 import com.google.gson.annotations.SerializedName
 
-// Kelas ini tidak perlu diubah.
 data class GamesResponse(
+    // Ini sangat penting karena API Rawg mengembalikan total hitungan item di sini,
+    // dan ViewModel Anda mencoba mengaksesnya.
+    @field:SerializedName("count")
+    val count: Int,
+
     @field:SerializedName("results")
     val results: List<Game>
 )
 
-// Kelas ini sudah Anda perbarui, pastikan semua properti ada.
 data class Game(
     @field:SerializedName("id")
     val id: Int,
@@ -29,10 +30,10 @@ data class Game(
     val released: String?,
 
     @field:SerializedName("genres")
-    val genres: List<Genre>, // Sekarang 'Genre' akan dikenali
+    val genres: List<Genre>,
 
     @field:SerializedName("esrb_rating")
-    val esrbRating: EsrbRating?, // Sekarang 'EsrbRating' akan dikenali
+    val esrbRating: EsrbRating?,
 
     @field:SerializedName("metacritic")
     val metacritic: Int?,
@@ -40,10 +41,6 @@ data class Game(
     @field:SerializedName("playtime")
     val playtime: Int
 )
-
-
-// --- BAGIAN YANG KEMUNGKINAN HILANG ADA DI SINI ---
-// Pastikan dua data class di bawah ini ada di dalam file yang sama.
 
 /**
  * Kelas data untuk merepresentasikan satu objek genre dari API.

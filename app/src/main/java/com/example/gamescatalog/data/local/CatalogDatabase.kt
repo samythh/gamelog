@@ -12,8 +12,8 @@ import com.example.gamescatalog.data.local.entity.User
 // Versi database dinaikkan menjadi 3 karena ada perubahan skema (penambahan kolom di BookmarkedItem)
 @Database(
     entities = [User::class, BookmarkedItem::class],
-    version = 3, // PERBAIKAN: Naikkan versi database dari 2 menjadi 3
-    exportSchema = false // Atur ke false jika Anda tidak perlu mengekspor skema
+    version = 3,
+    exportSchema = false
 )
 abstract class CatalogDatabase : RoomDatabase() {
 
@@ -32,7 +32,6 @@ abstract class CatalogDatabase : RoomDatabase() {
                     "catalog_database"
                 )
                     // Izinkan migrasi destruktif jika tidak ada migrasi yang ditemukan.
-                    // CATATAN: Ini akan menghapus semua data yang ada saat skema berubah.
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

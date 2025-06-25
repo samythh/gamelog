@@ -1,4 +1,4 @@
-// File: ui/components/GameItemCard.kt
+// File: gamesCatalog2/app/src/main/java/com/example/gamescatalog/ui/components/GameItemCard.kt
 
 package com.example.gamescatalog.ui.components
 
@@ -123,24 +123,45 @@ fun MetacriticChip(score: Int, modifier: Modifier = Modifier) {
 
 /**
  * Composable bantuan untuk menampilkan potongan info dengan ikon.
+ * BARIS INI DITAMBAHKAN/DIPERBAIKI: Menambahkan Surface untuk latar belakang dan padding.
+ * Juga menambahkan parameter optional 'onClick' untuk membuat chip bisa diklik.
  */
 @Composable
-fun InfoChip(text: String, icon: ImageVector? = null) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        // Tampilkan ikon hanya jika disediakan
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) // Warna ikon sedikit transparan
+fun InfoChip(
+    text: String,
+    icon: ImageVector? = null,
+    onClick: (() -> Unit)? = null, // Parameter onClick baru (nullable)
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp)) // Bentuk chip
+            .background(MaterialTheme.colorScheme.surfaceVariant) // Warna latar belakang dari tema
+            .let { m ->
+                if (onClick != null) m.clickable(onClick = onClick) else m // Membuat chip bisa diklik jika onClick disediakan
+            },
+        color = MaterialTheme.colorScheme.surfaceVariant, // Warna Surface
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant // Warna konten di Surface (ikon dan teks)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), // Padding internal chip
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Tampilkan ikon hanya jika disediakan
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant // Warna ikon sesuai konten Surface
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant // Warna teks sesuai konten Surface
             )
-            Spacer(modifier = Modifier.width(4.dp))
         }
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) // Warna teks sedikit transparan
-        )
     }
 }

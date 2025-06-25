@@ -1,3 +1,4 @@
+// File: gamesCatalog2/app/src/main/java/com/example/gamescatalog/ui/ViewModelFactory.kt
 package com.example.gamescatalog.ui
 
 import android.content.Context
@@ -10,7 +11,6 @@ import com.example.gamescatalog.ui.auth.AuthViewModel
 import com.example.gamescatalog.ui.favorite.FavoriteViewModel
 import com.example.gamescatalog.ui.home.HomeViewModel
 import com.example.gamescatalog.ui.profile.ProfileViewModel
-import com.example.gamescatalog.ui.MainViewModel
 
 class ViewModelFactory(
     private val repository: CatalogRepository,
@@ -22,13 +22,14 @@ class ViewModelFactory(
         // Menggunakan 'when' untuk mencocokkan ViewModel yang diminta
         // dengan constructor yang benar.
         return when {
-            // PERBAIKAN: AuthViewModel membutuhkan 'repository' DAN 'preferences'.
+            // AuthViewModel membutuhkan 'repository' DAN 'preferences'.
             modelClass.isAssignableFrom(AuthViewModel::class.java) -> {
                 AuthViewModel(repository, preferences) as T
             }
-            // MainViewModel hanya butuh 'preferences'.
+            // MainViewModel membutuhkan 'repository' sebagai parameter pertama
+            // dan 'preferences' sebagai parameter kedua.
             modelClass.isAssignableFrom(MainViewModel::class.java) -> {
-                MainViewModel(preferences) as T
+                MainViewModel(repository, preferences) as T // Baris 31
             }
             // HomeViewModel hanya butuh 'repository'.
             modelClass.isAssignableFrom(HomeViewModel::class.java) -> {

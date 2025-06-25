@@ -34,7 +34,7 @@ fun LoginScreen(
     navigateToHome: () -> Unit
 ) {
     val context = LocalContext.current
-    // Mendapatkan instance AuthViewModel menggunakan factory yang telah kita buat.
+    // Mendapatkan instance AuthViewModel menggunakan factory yang telah dibuat.
     val viewModel: AuthViewModel = viewModel(
         factory = ViewModelFactory.getInstance(context)
     )

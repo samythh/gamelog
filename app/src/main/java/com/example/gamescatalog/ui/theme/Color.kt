@@ -10,7 +10,3 @@ val SecondaryYellow = Color(0xFFF0C814)  // Kuning "Jonquil" untuk warna aksen
 val TextOnDark = Color(0xFFF0F0F0)      // "Anti-Flash White" untuk teks di atas latar gelap
 val TextOnLight = Color(0xFF141414)      // Hitam untuk teks di atas latar terang (seperti kuning)
 val PureWhite = Color(0xFFFFFFFF)        // Putih murni jika diperlukan
-val DarkGreen = Color(0xFF006400) // Contoh Dark Green
-val LightGreen = Color(0xFF90EE90) // Contoh Light Green
-val Red80 = Color(0xFFEF5350)     // Contoh Merah yang cerah
-val YellowSplash = Color(0xFFFFFF00)

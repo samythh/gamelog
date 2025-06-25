@@ -35,7 +35,6 @@ data class BookmarkedItem(
     @ColumnInfo(name = "esrb_rating")
     val esrbRating: String?, // Rating ESRB (nama)
 
-    // --- KOLOM BARU YANG DITAMBAHKAN ---
     @ColumnInfo(name = "description_raw")
     val descriptionRaw: String?, // Deskripsi game mentah (HTML)
 
@@ -43,8 +42,7 @@ data class BookmarkedItem(
     val websiteUrl: String?, // URL website resmi game
 
     // Karena platforms, genres, developers, publishers adalah List/Array,
-    // kita akan menyimpannya sebagai String JSON untuk kesederhanaan.
-    // Anda bisa membuat TypeConverter untuk ini jika ingin Room mem-parse-nya otomatis.
+    // Akan disimpan sebagai String JSON untuk kesederhanaan.
     @ColumnInfo(name = "platforms_json")
     val platformsJson: String?,
 

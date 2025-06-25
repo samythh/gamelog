@@ -1,111 +1,92 @@
+// File: gamesCatalog2/app/src/main/java/com/example/gamescatalog/ui/detail/DetailViewModel.kt
 package com.example.gamescatalog.ui.detail
 
-import androidx.lifecycle.SavedStateHandle
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.gamescatalog.data.CatalogRepository
 import com.example.gamescatalog.data.Result
 import com.example.gamescatalog.data.preferences.UserPreferences
 import com.example.gamescatalog.data.remote.response.GameDetailResponse
+import com.example.gamescatalog.data.remote.response.GameScreenshotsResponse
+import com.example.gamescatalog.di.Injection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-
-// ... (sealed interface DetailUiState tidak berubah)
-sealed interface DetailUiState {
-    object Loading : DetailUiState
-    data class Success(
-        val gameDetail: GameDetailResponse,
-        val isBookmarked: Boolean = false
-    ) : DetailUiState
-    data class Error(val message: String) : DetailUiState
-}
-
 
 class DetailViewModel(
     private val repository: CatalogRepository,
-    private val preferences: UserPreferences,
-    private val savedStateHandle: SavedStateHandle
+    private val preferences: UserPreferences // Konfirmasikan parameter ini ada
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<DetailUiState>(DetailUiState.Loading)
-    val uiState: StateFlow<DetailUiState> = _uiState
-    private val gameId: Int = savedStateHandle.get<Int>("gameId") ?: -1
+    private val _gameDetail = MutableStateFlow<Result<GameDetailResponse>>(Result.Loading)
+    val gameDetail: StateFlow<Result<GameDetailResponse>> = _gameDetail.asStateFlow()
+
+    private val _isBookmarked = MutableStateFlow(false)
+    val isBookmarked: StateFlow<Boolean> = _isBookmarked.asStateFlow()
+
+    private val _userId = MutableStateFlow(0)
+    val userId: StateFlow<Int> = _userId.asStateFlow()
+
+    private val _gameScreenshots = MutableStateFlow<Result<GameScreenshotsResponse>>(Result.Loading)
+    val gameScreenshots: StateFlow<Result<GameScreenshotsResponse>> = _gameScreenshots.asStateFlow()
 
     init {
-        if (gameId != -1) {
-            getGameDetails()
-        } else {
-            _uiState.value = DetailUiState.Error("Invalid Game ID")
-        }
-    }
-
-
-    private fun getGameDetails() {
         viewModelScope.launch {
-            // Mengakses elemen 'second' dari Pair untuk mendapatkan userId.
-            val userId = preferences.getSession().first().second
-            if (userId != -1) {
-                // PERBAIKAN: Teruskan userId ke repository.getGameDetail
-                repository.getGameDetail(gameId, userId).collect { result -> // Baris ini diperbaiki
-                    _uiState.value = when (result) {
-                        is Result.Success -> {
-                            // Status bookmark akan dicek di dalam repository,
-                            // jadi kita hanya perlu memperbarui uiState dengan data yang diterima.
-                            // isBookmarked akan diperbarui secara reaktif oleh checkBookmarkStatus jika perlu
-                            // atau sudah ada di GameDetailResponse dari bookmark.
-                            val isBookmarkedFromRepo = repository.isBookmarked(result.data.id, userId).first() // Pastikan status bookmark di-refresh
-                            DetailUiState.Success(result.data, isBookmarked = isBookmarkedFromRepo)
-                        }
-                        is Result.Error -> DetailUiState.Error(result.message ?: "Unknown Error")
-                        is Result.Loading -> DetailUiState.Loading
-                    }
-                }
-            } else {
-                _uiState.value = DetailUiState.Error("User session not found.")
+            preferences.getSession().collect { (_, currentUserId) ->
+                _userId.value = currentUserId
             }
         }
     }
 
-    fun toggleBookmark(game: GameDetailResponse) {
+    fun getGameDetail(gameId: Int, userId: Int) {
         viewModelScope.launch {
-            val userId = preferences.getSession().first().second
-            if (userId != -1) {
-                repository.toggleBookmark(game, userId)
-                // Setelah toggle, refresh status bookmark
-                checkBookmarkStatus(game.id, userId)
+            repository.getGameDetail(gameId, userId).collect { result ->
+                _gameDetail.value = result
+            }
+        }
+        getGameScreenshots(gameId)
+    }
+
+    fun getGameScreenshots(gameId: Int) {
+        viewModelScope.launch {
+            repository.getGameScreenshots(gameId).collect { result ->
+                _gameScreenshots.value = result
             }
         }
     }
 
-    private fun checkBookmarkStatus(gameId: Int, userId: Int) {
+    fun checkBookmarkStatus(itemId: Int, userId: Int) {
         viewModelScope.launch {
-            repository.isBookmarked(gameId, userId).collect { isBookmarked ->
-                val currentState = _uiState.value
-                if (currentState is DetailUiState.Success) {
-                    _uiState.value = currentState.copy(isBookmarked = isBookmarked)
-                }
+            repository.isBookmarked(itemId, userId).collect { isBookmarked ->
+                _isBookmarked.value = isBookmarked
             }
+        }
+    }
+
+    fun toggleBookmark(gameDetail: GameDetailResponse, userId: Int) {
+        viewModelScope.launch {
+            repository.toggleBookmark(gameDetail, userId)
+            checkBookmarkStatus(gameDetail.id, userId)
         }
     }
 
     companion object {
         fun provideFactory(
             repository: CatalogRepository,
-            preferences: UserPreferences
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(
-                modelClass: Class<T>,
-                extras: CreationExtras
-            ): T {
-                val savedStateHandle = extras.createSavedStateHandle()
-                return DetailViewModel(repository, preferences, savedStateHandle) as T
+            context: Context
+        ): ViewModelProvider.Factory =
+            object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
+                        // UserPreferencesg dibuat dengan context yang valid.
+                        return DetailViewModel(repository, Injection.provideUserPreferences(context)) as T
+                    }
+                    throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
+                }
             }
-        }
     }
 }

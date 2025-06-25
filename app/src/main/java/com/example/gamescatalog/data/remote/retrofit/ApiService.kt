@@ -1,35 +1,66 @@
-// File: data/remote/retrofit/ApiService.kt
-
+// File: gamesCatalog2/app/src/main/java/com/example/gamescatalog/data/remote/retrofit/ApiService.kt
 package com.example.gamescatalog.data.remote.retrofit
 
 import com.example.gamescatalog.data.remote.response.GameDetailResponse
+import com.example.gamescatalog.data.remote.response.GameScreenshotsResponse
 import com.example.gamescatalog.data.remote.response.GamesResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
+/**
+ * Antarmuka untuk mendefinisikan endpoint API yang akan diakses menggunakan Retrofit.
+ */
 interface ApiService {
+
     /**
-     * Mengambil detail dari satu game berdasarkan ID-nya.
-     * @Path("id") akan menggantikan {id} di URL dengan nilai dari parameter id.
+     * Mendapatkan daftar game.
+     * @param key Kunci API untuk otentikasi.
+     * @param page Nomor halaman yang akan diambil.
+     * @return Objek GamesResponse yang berisi daftar game.
+     */
+    @GET("games")
+    suspend fun getGames(
+        @Query("key") key: String,
+        @Query("page") page: Int = 1 // BARIS INI DITAMBAHKAN/DIPERBAIKI: Menambahkan parameter halaman dengan nilai default 1
+    ): GamesResponse
+
+    /**
+     * Mendapatkan detail sebuah game berdasarkan ID.
+     * @param id ID unik dari game.
+     * @param key Kunci API untuk otentikasi.
+     * @return Objek GameDetailResponse yang berisi detail game.
      */
     @GET("games/{id}")
     suspend fun getGameDetail(
         @Path("id") id: Int,
-        @Query("key") apiKey: String
+        @Query("key") key: String
     ): GameDetailResponse
 
     /**
-     * Fungsi untuk mengambil daftar game.
-     * @GET("games") menandakan metode HTTP GET ke endpoint "games".
-     * @Query("key") akan menambahkan parameter "?key=YOUR_API_KEY" ke URL.
-     * Ditandai 'suspend' karena ini adalah network call yang harus berjalan di coroutine.
+     * Mendapatkan daftar screenshot untuk sebuah game berdasarkan ID.
+     * @param gameId ID unik dari game.
+     * @param key Kunci API untuk otentikasi.
+     * @return Objek GameScreenshotsResponse yang berisi daftar screenshot.
+     */
+    @GET("games/{gameId}/screenshots")
+    suspend fun getGameScreenshots(
+        @Path("gameId") gameId: Int,
+        @Query("key") key: String
+    ): GameScreenshotsResponse
+
+    /**
+     * Mencari daftar game berdasarkan query pencarian.
+     * Menggunakan endpoint yang sama dengan getGames, tetapi dengan parameter 'search'.
+     * @param query String pencarian.
+     * @param key Kunci API untuk otentikasi.
+     * @param page Nomor halaman yang akan diambil.
+     * @return Objek GamesResponse yang berisi daftar game hasil pencarian.
      */
     @GET("games")
-    suspend fun getGamesList(
-        @Query("key") apiKey: String,
-        // ---> PENAMBAHAN ADA DI SINI <---
-        // Menambahkan parameter 'page' untuk memberi tahu API halaman mana yang akan diambil.
-        @Query("page") page: Int
+    suspend fun searchGames(
+        @Query("search") query: String,
+        @Query("key") key: String,
+        @Query("page") page: Int = 1
     ): GamesResponse
 }

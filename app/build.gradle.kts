@@ -59,9 +59,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // ---> BAGIAN PENTING YANG HILANG ADA DI SINI <---
-        // Tambahkan dua baris di bawah ini.
-
         // 1. Mengambil nilai dari variabel "API_KEY" yang ada di file local.properties.
         val apiKey = localProperties.getProperty("API_KEY")
 
@@ -83,27 +80,24 @@ dependencies {
     implementation(libs.androidx.material3)
 
     // --- ARSITEKTUR MVVM ---
-    // Menggunakan alias yang sebelumnya "tidak terpakai"
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     // --- NAVIGASI ---
-    // Menggunakan alias yang sebelumnya "tidak terpakai"
     implementation(libs.androidx.navigation.compose)
 
     // --- KONEKSI API (RETROFIT) ---
-    // Menggunakan alias yang sebelumnya "tidak terpakai"
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.converter.gson)
+    // DITAMBAHKAN: Logging Interceptor untuk melihat request/response API (sangat berguna untuk debugging)
+    implementation(libs.okhttp.logging.interceptor)
+
 
     // --- DATABASE LOKAL (ROOM) ---
-    // Menggunakan alias yang sebelumnya "tidak terpakai"
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    // Menggunakan alias compiler dengan "ksp"
     ksp(libs.androidx.room.compiler)
 
     // --- PENYIMPANAN PREFERENSI (DATASTORE) ---
-    // Menggunakan alias yang sebelumnya "tidak terpakai"
     implementation(libs.androidx.datastore.preferences)
 
     // --- TESTING ---
@@ -119,4 +113,14 @@ dependencies {
 
     implementation(libs.androidx.material.icons.extended)
 
+
+    implementation(libs.accompanist.pager)
+    implementation(libs.accompanist.pager.indicators)
+
+
+    implementation(libs.gson)
+
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.accompanist.swiperefresh)
 }

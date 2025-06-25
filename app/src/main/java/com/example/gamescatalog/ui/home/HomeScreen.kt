@@ -1,157 +1,210 @@
-// File: ui/home/HomeScreen.kt
-
+// File: gamesCatalog2/app/src/main/java/com/example/gamescatalog/ui/home/HomeScreen.kt
 package com.example.gamescatalog.ui.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.gamescatalog.ui.ViewModelFactory
+import com.example.gamescatalog.di.Injection
 import com.example.gamescatalog.ui.components.GameItemCard
-// ---> Menggunakan import untuk API PullToRefresh yang baru dan benar <---
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Favorite
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    // Nanti akan kita gunakan untuk navigasi ke halaman detail
     navigateToDetail: (Int) -> Unit,
+    navigateToProfile: () -> Unit,
     navigateToFavorite: () -> Unit,
-    navigateToProfile: () -> Unit
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val viewModel: HomeViewModel = viewModel(
-        factory = ViewModelFactory.getInstance(context)
+        factory = HomeViewModel.provideFactory(Injection.provideRepository(context))
     )
     val uiState by viewModel.uiState.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val searchResult by viewModel.searchResult.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
 
-    // --- LOGIKA UNTUK PULL TO REFRESH & INFINITE SCROLL ---
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
-    // 1. State untuk PullToRefresh
-    val pullToRefreshState = rememberPullToRefreshState()
-    if (pullToRefreshState.isRefreshing) {
-        // Memicu refresh saat pengguna menarik layar
-        LaunchedEffect(true) {
-            viewModel.fetchGames(isInitialLoad = true)
-        }
-    }
-    // Menghentikan animasi refresh saat data selesai dimuat
-    LaunchedEffect(uiState.isLoading) {
-        if (!uiState.isLoading) {
-            pullToRefreshState.endRefresh()
-        }
-    }
-
-    // 2. State untuk Infinite Scroll
-    val lazyListState = rememberLazyListState()
-    // State turunan untuk mendeteksi apakah pengguna sudah di akhir daftar
-    val isAtBottom by remember {
-        derivedStateOf {
-            val lastVisibleItem = lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem?.index != null && lastVisibleItem.index >= lazyListState.layoutInfo.totalItemsCount - 5
-        }
-    }
-    // Memicu pemuatan halaman berikutnya saat pengguna mencapai akhir daftar
-    LaunchedEffect(isAtBottom) {
-        if (isAtBottom && !uiState.isLoadingMore) {
-            viewModel.fetchGames(isInitialLoad = false)
-        }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .filter { index ->
+                if (index == null) return@filter false
+                val totalItems = listState.layoutInfo.totalItemsCount
+                val threshold = totalItems - 5
+                index >= threshold
+            }
+            .distinctUntilChanged()
+            .collect {
+                viewModel.loadNextPage()
+            }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Katalog Game") },
+                title = {
+                    Text(
+                        text = "Katalog Game",
+                        modifier = Modifier.clickable {
+                            viewModel.refreshGames() // Memanggil fungsi refresh
+                            coroutineScope.launch {
+                                listState.animateScrollToItem(0) // Menggulir ke item paling atas dengan animasi
+                            }
+                        }
+                    )
+                },
                 actions = {
                     IconButton(onClick = navigateToFavorite) {
                         Icon(
-                            imageVector = Icons.Filled.Favorite, // Gunakan Icons.Filled.Favorite
-                            contentDescription = "Halaman Favorit",
-                            tint = MaterialTheme.colorScheme.primary // Sesuaikan warna ikon
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = "Favorite Games",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
+
                     IconButton(onClick = navigateToProfile) {
                         Icon(
                             imageVector = Icons.Default.Person,
-                            contentDescription = "Halaman Profil",
-                            tint = MaterialTheme.colorScheme.primary
+                            contentDescription = "Profil Pengguna",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
             )
         }
     ) { innerPadding ->
-        // Box pembungkus sekarang menggunakan modifier .nestedScroll
-        Box(
-            modifier = Modifier
+        Column(
+            modifier = modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .nestedScroll(pullToRefreshState.nestedScrollConnection)
         ) {
-            // Jika sedang loading DAN daftar game masih kosong, tampilkan progress indicator di tengah layar
-            if (uiState.isLoading && uiState.games.isEmpty()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
-            // Jika ada error DAN daftar game masih kosong, tampilkan pesan error
-            else if (uiState.error != null && uiState.games.isEmpty()) {
-                Column(/*...*/) { /*...*/ }
-            }
-            // Jika data berhasil dimuat, tampilkan daftar game
-            else {
-                LazyColumn(
-                    state = lazyListState, // <-- Hubungkan LazyListState di sini
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(uiState.games, key = { it.id }) { game ->
-                        // Menggunakan GameItemCard yang sudah direfactor
-                        GameItemCard(
-                            // 1. Ganti nama parameter 'title' menjadi 'name'
-                            name = game.name,
-                            imageUrl = game.backgroundImage ?: "",
-                            // 2. Teruskan semua data lain yang sekarang dibutuhkan oleh GameItemCard
-                            rating = game.rating,
-                            metacriticScore = game.metacritic,
-                            releaseDate = game.released,
-                            playtime = game.playtime,
-                            esrbRating = game.esrbRating?.name,
-                            onClick = { navigateToDetail(game.id) }
-                        )
+            // --- BAGIAN SEARCH BAR ---
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { viewModel.updateSearchQuery(it) },
+                label = { Text("Cari game...") },
+                singleLine = true,
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Cari") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            // --- AKHIR BAGIAN SEARCH BAR ---
+
+            val currentContentState = if (searchQuery.isNotBlank()) searchResult else uiState
+
+            when (currentContentState) {
+                is HomeUiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
-                    // --- FOOTER SEKARANG HANYA UNTUK INDIKATOR LOADING ---
-                    item {
-                        if (uiState.isLoadingMore) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 16.dp),
-                                horizontalArrangement = Arrangement.Center
+                }
+                is HomeUiState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "Gagal memuat: ${currentContentState.message}")
+                    }
+                }
+                is HomeUiState.Success -> {
+                    SwipeRefresh(
+                        state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
+                        onRefresh = {
+                            viewModel.refreshGames() // Panggil fungsi refresh di ViewModel saat ditarik
+                            coroutineScope.launch {
+                                listState.animateScrollToItem(0) // Menggulir ke item paling atas dengan animasi
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        if (currentContentState.gamesResponse.results.isNotEmpty()) {
+                            LazyColumn(
+                                state = listState,
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                CircularProgressIndicator()
+                                items(currentContentState.gamesResponse.results) { game ->
+                                    GameItemCard(
+                                        name = game.name,
+                                        imageUrl = game.backgroundImage ?: "",
+                                        rating = game.rating,
+                                        metacriticScore = game.metacritic,
+                                        releaseDate = game.released,
+                                        playtime = game.playtime,
+                                        esrbRating = game.esrbRating?.name,
+                                        onClick = { navigateToDetail(game.id) },
+                                        modifier = Modifier.clickable { navigateToDetail(game.id) }
+                                    )
+                                }
+                                if (currentContentState.isLoadingMore) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                        }
+                                    }
+                                }
+                                if (!currentContentState.canLoadMore && !currentContentState.isLoadingMore && currentContentState.gamesResponse.results.isNotEmpty()) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = "Semua game telah dimuat.",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = if (searchQuery.isNotBlank()) "Tidak ada hasil untuk \"$searchQuery\"" else "Tidak ada game tersedia.")
                             }
                         }
                     }
                 }
             }
-
-            // Indikator Pull-to-Refresh sekarang menggunakan PullToRefreshContainer
-            PullToRefreshContainer(
-                state = pullToRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter),
-            )
         }
     }
 }

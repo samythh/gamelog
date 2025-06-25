@@ -61,11 +61,9 @@ fun FavoriteScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(bookmarkedGames, key = { it.itemId }) { bookmarkedGame ->
-                        // ---> PERBAIKAN PEMANGGILAN GameItemCard ADA DI SINI <---
                         GameItemCard(
-                            name = bookmarkedGame.title, // 1. Ganti 'title' menjadi 'name'
+                            name = bookmarkedGame.title,
                             imageUrl = bookmarkedGame.imageUrl,
-                            // 2. Sekarang kita bisa meneruskan semua data kaya lainnya
                             rating = bookmarkedGame.rating,
                             metacriticScore = bookmarkedGame.metacritic,
                             releaseDate = bookmarkedGame.releaseDate,
